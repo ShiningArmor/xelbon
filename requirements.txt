@@ -1,0 +1,6 @@
+Flask==0.12.1
+openpyxl==2.4.6
+peewee==2.9.2
+Unidecode==0.4.20
+wtf-peewee==0.2.6
+
