@@ -2,6 +2,23 @@ from openpyxl import load_workbook
 from utils import xls2xlsx, index2excel
 import json
 
+datatypes = {
+    "int": int,
+    "float": float,
+    "unicode": unicode,
+    "str": str,
+    "None": None,
+}
+
+form_datatypes = {
+    "int": "Entero",
+    "float": "Decimal",
+    "unicode": "Texto",
+    "str": "Texto",
+    "None": "Vacio",
+}
+
+
 class ExcelConnector(object):
     def __init__(self, pathfile, mode="r"):
         self.pathfile = pathfile
@@ -9,6 +26,7 @@ class ExcelConnector(object):
         self.table_index = 0
         self.wb = None
         self.tables = []
+        self.forms = []
         self.open()
         self.initialize()
 
@@ -22,8 +40,12 @@ class ExcelConnector(object):
     def initialize(self):
         sheets_names = self.wb.get_sheet_names()
         for idx, sheet in enumerate(sheets_names):
-            table = Table(self.get_sheet(idx),idx)
-            self.tables.append(table)
+            if "FormWeb" in sheet:
+                table = Table(self.get_sheet(idx), idx)
+                self.forms.append(table)
+            else:
+                table = Table(self.get_sheet(idx),idx)
+                self.tables.append(table)
 
     def set_table_crusors(self):
         for table in self.tables:
@@ -47,6 +69,16 @@ class Table(object):
     def refresh(self):
         pass
 
+    def get_field_dataype(self, cell):
+        for _type in [int,float,unicode,str, None]:
+            if isinstance(self.sheet[index2excel(cell.row  + 1, cell.col_idx)].value, _type):
+                a = str(_type)
+                if _type is not None:
+                    a = a[a.find("'") + 1:a.rfind("'")]
+                return a
+
+        return 'None'
+
     def find_table(self):
         stop = False
         indexes = []
@@ -56,7 +88,7 @@ class Table(object):
                     indexes.append({"title": i.value,
                                     "column": i.column,
                                     "row": i.row,
-                                    "datatype": str(type(self.sheet[index2excel(i.row  + 1 , i.col_idx)].value))
+                                    "datatype": self.get_field_dataype(i)
                                    })
                     stop = True
             if stop:
@@ -70,3 +102,27 @@ class Table(object):
             cursor=self.cursor,
             fields=self.indexes
         ))
+
+
+class Form(object):
+    def __init__(self, sheet):
+        self.sheet = sheet
+        self.name = self.sheet.title
+        self.dimensions = self.sheet.dimensions
+        self.title = ""
+
+
+    def get_form(self):
+        col = 1
+        fil = 2
+
+
+
+    def create_form(self):
+        form = [["FORMULARIO WEB: %s" % self.name,],]
+        for index in self.indexes:
+            row = []
+            row.append(index["title"])
+            row.append(form_datatypes[index["datatype"]])
+            form.append(row)
+        return form

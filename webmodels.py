@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from peewee import Proxy, SqliteDatabase, Model, CharField, BigIntegerField, FloatField, DateTimeField,TextField
+from wtfpeewee.orm import model_form, model_fields
 from unidecode import unidecode
 import json
 database_proxy = Proxy()
-
 # sqlite_db = SqliteDatabase('excels.db',  fields={'primary_key': 'INTEGER AUTOINCREMENT'})
 sqlite_db = SqliteDatabase('excels.db')
 
@@ -35,6 +35,7 @@ class XlsTable(BaseModel):
     name = CharField()
     friendly_name = CharField()
     data = TextField()
+    form = TextField()
     filexls = CharField()
     cursor = CharField()
     class Meta:
@@ -92,5 +93,9 @@ def create_model(data):
     mem_model = factory(json.loads(model.data))
     dynamic_models.add_model(mem_model)
     return mem_model
+
+def create_form(model):
+    fields = model_fields(model)
+
 
 dynamic_models = DynMo()
